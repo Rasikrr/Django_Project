@@ -3,14 +3,18 @@ from django.http import HttpResponse
 from django.contrib.auth.models import User, auth
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Profile
+from .models import Profile, Post
 
 
 # Create your views here.
 
 @login_required(login_url="signin")
 def index(request):
-    return render(request, "index.html")
+    user_object = User.objects.get(username=request.user.username)
+    user_profile = Profile.objects.get(user=user_object)
+
+    feed_list = 
+    return render(request, "index.html", {"user_profile": user_profile})
 
 
 def signup(request):
@@ -55,16 +59,18 @@ def settings(request):
     user_profile = Profile.objects.get(user=request.user)
 
     if request.method == "POST":
+        first_name = request.POST["first_name"]
+        last_name = request.POST["last_name"]
         bio = request.POST["bio"]
         location = request.POST["location"]
-        if request.FILES.get("image") is None:
-            image = user_profile.profile_img
-        else:
+        if request.FILES.get("image"):
             image = request.FILES.get("image")
+            user_profile.profile_img = image
 
+        user_profile.first_name = first_name.capitalize()
+        user_profile.last_name = last_name.capitalize()
         user_profile.bio = bio
         user_profile.location = location
-        user_profile.image = image
         user_profile.save()
         return redirect("settings")
 
@@ -93,3 +99,12 @@ def logout(request):
     auth.logout(request)
     return redirect("signin")
 
+
+def upload(request):
+    if request.method == "POST":
+        user = request.user.username
+        image = request.FILES.get("image_upload")
+        caption = request.POST["caption"]
+        new_post = Post.objects.create(user=user, image=image, caption=caption)
+        new_post.save()
+    return redirect("/")
