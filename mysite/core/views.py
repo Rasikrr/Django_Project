@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.contrib.auth.models import User, auth
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Profile, Post
+from .models import Profile, Post, LikeCommentPost
 
 
 # Create your views here.
@@ -13,8 +13,26 @@ def index(request):
     user_object = User.objects.get(username=request.user.username)
     user_profile = Profile.objects.get(user=user_object)
 
-    feed_list = 
-    return render(request, "index.html", {"user_profile": user_profile})
+    posts = Post.objects.all()
+    return render(request, "index.html", {"user_profile": user_profile,
+                                          "posts": posts})
+
+
+def signin(request):
+    if request.method == "POST":
+        username = request.POST["username"]
+        password = request.POST["password"]
+
+        user = auth.authenticate(username=username, password=password)
+
+        if user is not None:
+            auth.login(request,user)
+            return redirect("/")
+        else:
+            messages.info(request, "Name or password is incorrect")
+            return redirect("signin")
+    else:
+        return render(request, "signin.html")
 
 
 def signup(request):
@@ -54,6 +72,35 @@ def signup(request):
         return render(request, "signup.html")
 
 
+def upload(request):
+    if request.method == "POST":
+        user = request.user.username
+        image = request.FILES.get("image_upload")
+        caption = request.POST["caption"]
+        new_post = Post.objects.create(user=user, image=image, caption=caption)
+        new_post.save()
+    return redirect("/")
+
+
+@login_required(login_url="signin")
+def like_post(request):
+    username = request.user.username
+    post_id = request.GET.get("post_id")
+    post = Post.objects.get(id=post_id)
+    like_filter = LikeCommentPost.objects.filter(post_id=post_id, username=username).first()
+
+    if like_filter is None:
+        new_like = LikeCommentPost.objects.create(post_id=post_id, username=username)
+        new_like.save()
+        post.no_of_likes += 1
+
+    else:
+        post.no_of_likes -= 1
+        like_filter.delete()
+    post.save()
+    return redirect("/")
+
+
 @login_required(login_url="signin")
 def settings(request):
     user_profile = Profile.objects.get(user=request.user)
@@ -77,34 +124,9 @@ def settings(request):
     return render(request, "setting.html", {"user_profile": user_profile})
 
 
-def signin(request):
-    if request.method == "POST":
-        username = request.POST["username"]
-        password = request.POST["password"]
-
-        user = auth.authenticate(username=username, password=password)
-
-        if user is not None:
-            auth.login(request,user)
-            return redirect("/")
-        else:
-            messages.info(request, "Name or password is incorrect")
-            return redirect("signin")
-    else:
-        return render(request, "signin.html")
-
-
 @login_required(login_url="signin")
 def logout(request):
     auth.logout(request)
     return redirect("signin")
 
 
-def upload(request):
-    if request.method == "POST":
-        user = request.user.username
-        image = request.FILES.get("image_upload")
-        caption = request.POST["caption"]
-        new_post = Post.objects.create(user=user, image=image, caption=caption)
-        new_post.save()
-    return redirect("/")
