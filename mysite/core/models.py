@@ -41,3 +41,5 @@ class LikeCommentPost(models.Model):
         return self.username
 
 
+class XOROHO(models.Model):
+    pass
