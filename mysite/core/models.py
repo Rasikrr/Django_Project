@@ -40,6 +40,3 @@ class LikeCommentPost(models.Model):
     def __str__(self):
         return self.username
 
-
-class XOROHO(models.Model):
-    pass
