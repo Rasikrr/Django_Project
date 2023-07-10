@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.contrib.auth.models import User, auth
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Profile, Post, LikeCommentPost
+from .models import Profile, Post, LikePost
 
 
 # Create your views here.
@@ -15,7 +15,8 @@ def index(request):
 
     posts = Post.objects.all()
     return render(request, "index.html", {"user_profile": user_profile,
-                                          "posts": posts})
+                                          "posts": posts
+                                          })
 
 
 def signin(request):
@@ -74,10 +75,11 @@ def signup(request):
 
 def upload(request):
     if request.method == "POST":
-        user = request.user.username
+        user = request.user
+        profile = Profile.objects.get(user=user)
         image = request.FILES.get("image_upload")
         caption = request.POST["caption"]
-        new_post = Post.objects.create(user=user, image=image, caption=caption)
+        new_post = Post.objects.create(user_profile=profile, image=image, caption=caption)
         new_post.save()
     return redirect("/")
 
@@ -87,10 +89,10 @@ def like_post(request):
     username = request.user.username
     post_id = request.GET.get("post_id")
     post = Post.objects.get(id=post_id)
-    like_filter = LikeCommentPost.objects.filter(post_id=post_id, username=username).first()
+    like_filter = LikePost.objects.filter(post_id=post_id, username=username).first()
 
     if like_filter is None:
-        new_like = LikeCommentPost.objects.create(post_id=post_id, username=username)
+        new_like = LikePost.objects.create(post_id=post_id, username=username)
         new_like.save()
         post.no_of_likes += 1
 

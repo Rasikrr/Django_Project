@@ -10,5 +10,4 @@ urlpatterns = [
     path("logout", views.logout, name="logout"),
     path("upload", views.upload, name="upload"),
     path("like-post", views.like_post, name="like-post"),
-    # path("comment-post", views.comment_post, name="comment-post")
 ]

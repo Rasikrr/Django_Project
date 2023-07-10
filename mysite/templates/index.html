@@ -205,10 +205,10 @@
                                 <div class="flex flex-1 items-center space-x-4">
                                     <a href="#">
                                         <div class="bg-gradient-to-tr from-yellow-600 to-pink-600 p-0.5 rounded-full">
-                                            <img src="{{user_profile.profile_img.url}}" class="bg-gray-200 border border-white rounded-full w-8 h-8">
+                                            <img src="{{post.user_profile.profile_img.url}}" class="bg-gray-200 border border-white rounded-full w-8 h-8">
                                         </div>
                                     </a>
-                                    <span class="block capitalize font-semibold "> <a href="#">{{post.user}}</a> </span>
+                                    <span class="block capitalize font-semibold "> <a href="#">{{post.user_profile.user.username}}</a> </span>
                                 </div>
                               <div>
                                 <a href="#"> <i class="icon-feather-more-horizontal text-2xl hover:bg-gray-200 rounded-full p-2 transition -mr-1 "></i> </a>
@@ -282,40 +282,10 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="25" height="25" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><g fill="currentColor"><path d="M8.5 1.5A1.5 1.5 0 0 1 10 0h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h6c-.314.418-.5.937-.5 1.5v6h-2a.5.5 0 0 0-.354.854l2.5 2.5a.5.5 0 0 0 .708 0l2.5-2.5A.5.5 0 0 0 10.5 7.5h-2v-6z"/></g></svg>
                                     </a>
                                 </div>
-<!--                                <div class="flex items-center space-x-3">-->
-<!--                                    <div class="flex items-center">-->
-<!--                                        <img src="{% static 'assets/images/avatars/avatar-1.jpg' %}" alt="" class="w-6 h-6 rounded-full border-2 border-white ">-->
-<!--                                        <img src="{% static 'assets/images/avatars/avatar-4.jpg' %}" alt="" class="w-6 h-6 rounded-full border-2 border-white  -ml-2">-->
-<!--                                        <img src="{% static 'assets/images/avatars/avatar-2.jpg' %}" alt="" class="w-6 h-6 rounded-full border-2 border-white  -ml-2">-->
-<!--                                    </div>-->
-<!--                                    <div class="">-->
-<!--                                        Liked <strong> taiye</strong> and <strong> 209 Others </strong>-->
-<!--                                    </div>-->
-<!--                                </div>-->
-
                                 <div class="border-t pt-4 space-y-4 ">
-<!--                                    <div class="flex">-->
-<!--                                        <div class="w-10 h-10 rounded-full relative flex-shrink-0">-->
-<!--                                            <img src="{% static 'assets/images/avatars/avatar-1.jpg' %}" alt="" class="absolute h-full rounded-full w-full">-->
-<!--                                        </div>-->
-<!--                                        <div class="text-gray-700 py-2 px-3 rounded-md bg-gray-100 h-full relative lg:ml-5 ml-2 lg:mr-20   ">-->
-<!--                                            <p class="leading-6">Y'all like billie eillish? <urna class="i uil-heart"></urna> <i-->
-<!--                                                    class="uil-grin-tongue-wink"> </i> </p>-->
-<!--                                            <div class="absolute w-3 h-3 top-3 -left-1 bg-gray-100 transform rotate-45 "></div>-->
-<!--                                        </div>-->
-<!--                                    </div>-->
-<!--                                    <div class="flex">-->
-<!--                                        <div class="w-10 h-10 rounded-full relative flex-shrink-0">-->
-<!--                                            <img src="{% static 'assets/images/avatars/avatar-1.jpg' %}" alt="" class="absolute h-full rounded-full w-full">-->
-<!--                                        </div>-->
-<!--                                        <div class="text-gray-700 py-2 px-3 rounded-md bg-gray-100 h-full relative lg:ml-5 ml-2 lg:mr-20   ">-->
-<!--                                            <p class="leading-6">She's my favourite <i class="uil-grin-tongue-wink-alt"></i>-->
-<!--                                            </p>-->
-<!--                                            <div class="absolute w-3 h-3 top-3 -left-1 bg-gray-100 transform rotate-45 "></div>-->
-<!--                                        </div>-->
-<!--                                    </div>-->
+
                                 </div>
-                                <p> <a href="#"> <b>{{post.user}}</b> </a> {{post.caption}}</p>
+                                <p> <a href="#"> <b>{{post.user_profile.user.username}}</b> </a> {{post.caption}}</p>
                                 <form>
                                     <div class="bg-gray-100 bg-gray-100 rounded-full rounded-md relative ">
                                         <input type="text" placeholder="post a comment" class="bg-transparent max-h-10 shadow-none">
