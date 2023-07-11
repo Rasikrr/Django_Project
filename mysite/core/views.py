@@ -1,5 +1,7 @@
+import json
+
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.models import User, auth
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -84,23 +86,45 @@ def upload(request):
     return redirect("/")
 
 
+# @login_required(login_url="signin")
+# def like_post(request):
+#     username = request.user.username
+#     post_id = request.GET.get("post_id")
+#     post = Post.objects.get(id=post_id)
+#     like_filter = LikePost.objects.filter(post_id=post_id, username=username).first()
+#
+#     if like_filter is None:
+#         new_like = LikePost.objects.create(post_id=post_id, username=username)
+#         new_like.save()
+#         post.no_of_likes += 1
+#
+#     else:
+#         post.no_of_likes -= 1
+#         like_filter.delete()
+#     post.save()
+#     return redirect("/")
+
 @login_required(login_url="signin")
 def like_post(request):
-    username = request.user.username
-    post_id = request.GET.get("post_id")
-    post = Post.objects.get(id=post_id)
-    like_filter = LikePost.objects.filter(post_id=post_id, username=username).first()
+    if request.method == "POST" and request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+        data = json.loads(request.body)
+        username = request.user.username
+        post_id = data["post_id"]
+        post = Post.objects.get(id=post_id)
+        like_filter = LikePost.objects.filter(post_id=post_id, username=username).first()
+        print(like_filter)
+        if like_filter is None:
+            new_like = LikePost.objects.create(post_id=post_id, username=username)
+            new_like.save()
+            post.no_of_likes += 1
+        else:
+            post.no_of_likes -= 1
+            like_filter.delete()
+        likes_count = post.no_of_likes
+        post.save()
+        return JsonResponse({"likes_count": likes_count})
 
-    if like_filter is None:
-        new_like = LikePost.objects.create(post_id=post_id, username=username)
-        new_like.save()
-        post.no_of_likes += 1
 
-    else:
-        post.no_of_likes -= 1
-        like_filter.delete()
-    post.save()
-    return redirect("/")
 
 
 @login_required(login_url="signin")
