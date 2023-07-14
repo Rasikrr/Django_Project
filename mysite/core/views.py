@@ -5,7 +5,7 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.models import User, auth
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Profile, Post, LikePost
+from .models import Profile, Post, LikePost, FollowersCount
 
 
 # Create your views here.
@@ -16,6 +16,8 @@ def index(request):
     user_profile = Profile.objects.get(user=user_object)
 
     posts = Post.objects.all()
+    # followings_users = FollowersCount.objects.filter(user=request.user.username)
+    # print(followings_users)
     return render(request, "index.html", {"user_profile": user_profile,
                                           "posts": posts
                                           })
@@ -86,23 +88,46 @@ def upload(request):
     return redirect("/")
 
 
-# @login_required(login_url="signin")
-# def like_post(request):
-#     username = request.user.username
-#     post_id = request.GET.get("post_id")
-#     post = Post.objects.get(id=post_id)
-#     like_filter = LikePost.objects.filter(post_id=post_id, username=username).first()
-#
-#     if like_filter is None:
-#         new_like = LikePost.objects.create(post_id=post_id, username=username)
-#         new_like.save()
-#         post.no_of_likes += 1
-#
-#     else:
-#         post.no_of_likes -= 1
-#         like_filter.delete()
-#     post.save()
-#     return redirect("/")
+@login_required(login_url="signin")
+def profile(request, pk):
+    user_object = User.objects.get(username=pk)
+    user_profile = Profile.objects.get(user=user_object)
+    user_posts = Post.objects.filter(user_profile=user_profile)
+    user_posts_length = len(user_posts)
+    num_of_followers = FollowersCount.objects.filter(user=pk)
+    is_followed = FollowersCount.objects.filter(user=pk, follower=request.user.username).first()
+    num_of_following = FollowersCount.objects.filter(follower=pk)
+
+    follow_button_text = "Unfollow"
+    if is_followed is None:
+        follow_button_text = "Follow"
+
+    return render(request, "profile.html", context={"user_profile": user_profile,
+                                                    "user_object": user_object,
+                                                    "user_posts": user_posts,
+                                                    "user_posts_length": user_posts_length,
+                                                    "num_of_followers": len(num_of_followers),
+                                                    "follow_button_text": follow_button_text,
+                                                    "num_of_following": len(num_of_following)
+                                                    })
+
+
+@login_required(login_url="signin")
+def follow(request):
+    if request.method == "POST":
+        follower = request.POST.get("follower")
+        user = request.POST.get("user")
+
+        if FollowersCount.objects.filter(follower=follower, user=user).first():
+            delete_follower = FollowersCount.objects.get(follower=follower, user=user)
+            delete_follower.delete()
+        else:
+            new_follower = FollowersCount.objects.create(follower=follower, user=user)
+            new_follower.save()
+        return redirect(f"/profile/{user}")
+    else:
+        return redirect("/")
+
 
 @login_required(login_url="signin")
 def like_post(request):
@@ -123,8 +148,6 @@ def like_post(request):
         likes_count = post.no_of_likes
         post.save()
         return JsonResponse({"likes_count": likes_count})
-
-
 
 
 @login_required(login_url="signin")
