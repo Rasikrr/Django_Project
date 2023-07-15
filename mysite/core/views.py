@@ -15,9 +15,11 @@ def index(request):
     user_object = User.objects.get(username=request.user.username)
     user_profile = Profile.objects.get(user=user_object)
 
-    posts = Post.objects.all()
-    # followings_users = FollowersCount.objects.filter(user=request.user.username)
-    # print(followings_users)
+    posts = []
+    followings_users = FollowersCount.objects.filter(follower=request.user.username)
+    for following in followings_users:
+        posts += Post.objects.filter(username=following.user)
+        print(following.user)
     return render(request, "index.html", {"user_profile": user_profile,
                                           "posts": posts
                                           })
@@ -77,13 +79,27 @@ def signup(request):
         return render(request, "signup.html")
 
 
+@login_required(login_url="signin")
+def search(request):
+    user_object = User.objects.get(username=request.user.username)
+    user_profile = Profile.objects.get(user=user_object)
+    if request.method == "POST":
+        username = request.POST.get("username")
+        username_profile_list = Profile.objects.filter(username=username)
+    return render(request, "search.html", context={"user_profile": user_profile,
+                                                   "username_profile_list": username_profile_list,
+                                                   "username": username
+                                                   })
+
+
 def upload(request):
     if request.method == "POST":
         user = request.user
+        username = request.user.username
         profile = Profile.objects.get(user=user)
         image = request.FILES.get("image_upload")
         caption = request.POST["caption"]
-        new_post = Post.objects.create(user_profile=profile, image=image, caption=caption)
+        new_post = Post.objects.create(user_profile=profile, image=image, caption=caption, username=username)
         new_post.save()
     return redirect("/")
 
