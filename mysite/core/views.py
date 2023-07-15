@@ -6,6 +6,7 @@ from django.contrib.auth.models import User, auth
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import Profile, Post, LikePost, FollowersCount
+from random import sample
 
 
 # Create your views here.
@@ -20,8 +21,27 @@ def index(request):
     for following in followings_users:
         posts += Post.objects.filter(username=following.user)
         print(following.user)
+
+    # user suggestions
+
+    all_user = Profile.objects.all()
+    all_users_names = [user.username for user in all_user]
+    all_following = FollowersCount.objects.filter(follower=user_object.username)
+    all_following_names = [user.user for user in all_following]
+
+    suggestions = list(filter(lambda x: x not in all_following_names and x != user_profile.username, all_users_names))
+    print(all_users_names)
+    print(all_following_names)
+    suggestions_profiles = [Profile.objects.get(username=username) for username in suggestions]
+    k = 5
+    length_of_profiles = len(suggestions_profiles)
+    if length_of_profiles < 5:
+        k = length_of_profiles
+    suggestions_profiles = sample(suggestions_profiles, k)
+
     return render(request, "index.html", {"user_profile": user_profile,
-                                          "posts": posts
+                                          "posts": posts,
+                                          "suggestions": suggestions_profiles
                                           })
 
 
@@ -57,6 +77,8 @@ def signup(request):
                 messages.info(request, "User with this username is exists")
                 return redirect("signup")
             else:
+                if username[0] != "@":
+                    username = "@" + username
                 user = User.objects.create_user(username=username, email=email, password=password)
                 user.save()
 
@@ -67,7 +89,7 @@ def signup(request):
 
                 # Create a Profile object to the new user
                 user_model = User.objects.get(username=username)
-                new_profile = Profile.objects.create(user=user_model, id_user=user_model.id)
+                new_profile = Profile.objects.create(user=user_model, id_user=user_model.id, username=username)
                 new_profile.save()
                 return redirect("settings")
 
@@ -85,7 +107,8 @@ def search(request):
     user_profile = Profile.objects.get(user=user_object)
     if request.method == "POST":
         username = request.POST.get("username")
-        username_profile_list = Profile.objects.filter(username=username)
+        username_profile_list = Profile.objects.filter(username__icontains=username)
+
     return render(request, "search.html", context={"user_profile": user_profile,
                                                    "username_profile_list": username_profile_list,
                                                    "username": username
@@ -110,9 +133,7 @@ def profile(request, pk):
     user_profile = Profile.objects.get(user=user_object)
     user_posts = Post.objects.filter(user_profile=user_profile)
     user_posts_length = len(user_posts)
-    num_of_followers = FollowersCount.objects.filter(user=pk)
     is_followed = FollowersCount.objects.filter(user=pk, follower=request.user.username).first()
-    num_of_following = FollowersCount.objects.filter(follower=pk)
 
     follow_button_text = "Unfollow"
     if is_followed is None:
@@ -122,9 +143,7 @@ def profile(request, pk):
                                                     "user_object": user_object,
                                                     "user_posts": user_posts,
                                                     "user_posts_length": user_posts_length,
-                                                    "num_of_followers": len(num_of_followers),
                                                     "follow_button_text": follow_button_text,
-                                                    "num_of_following": len(num_of_following)
                                                     })
 
 
@@ -133,13 +152,21 @@ def follow(request):
     if request.method == "POST":
         follower = request.POST.get("follower")
         user = request.POST.get("user")
+        user_profile = Profile.objects.get(username=user)
+        follower_profile = Profile.objects.get(username=follower)
 
         if FollowersCount.objects.filter(follower=follower, user=user).first():
             delete_follower = FollowersCount.objects.get(follower=follower, user=user)
+            user_profile.followers -= 1
+            follower_profile.followings -= 1
             delete_follower.delete()
         else:
             new_follower = FollowersCount.objects.create(follower=follower, user=user)
+            user_profile.followers += 1
+            follower_profile.followings += 1
             new_follower.save()
+        user_profile.save()
+        follower_profile.save()
         return redirect(f"/profile/{user}")
     else:
         return redirect("/")
